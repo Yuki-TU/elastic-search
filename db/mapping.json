@@ -1,0 +1,122 @@
+{
+  "settings": {
+    "analysis": {
+      "tokenizer": {
+        "ja_tokenizer": {
+          "type": "kuromoji_tokenizer"
+        }
+      },
+      "analyzer": {
+        "ja_analyzer": {
+          "type": "custom",
+          "tokenizer": "ja_tokenizer"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "name": {
+        "properties": {
+          "first_name": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "last_name": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "first_name_roman": {
+            "type": "keyword"
+          },
+          "last_name_roman": {
+            "type": "keyword"
+          }
+        }
+      },
+      "address": {
+        "properties": {
+          "region": {
+            "type": "keyword"
+          },
+          "zip_code": {
+            "type": "keyword"
+          },
+          "prefecture": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "city": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "street": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "other": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          }
+        }
+      },
+      "birthdate": {
+        "type": "date"
+      },
+      "image_url": {
+        "type": "keyword"
+      },
+      "email": {
+        "type": "keyword"
+      },
+      "careers": {
+        "type": "nested",
+        "properties": {
+          "restaurant": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "job_type_id": {
+            "type": "integer"
+          },
+          "job_type_name": {
+            "type": "text",
+            "analyzer": "ja_analyzer"
+          },
+          "career_positions": {
+            "type": "nested",
+            "properties": {
+              "genre_id": {
+                "type": "integer"
+              },
+              "genre_name": {
+                "type": "text",
+                "analyzer": "ja_analyzer"
+              },
+              "role_ids": {
+                "type": "integer"
+              },
+              "role_names": {
+                "type": "text",
+                "analyzer": "ja_analyzer"
+              }
+            }
+          },
+          "started_on": {
+            "type": "date"
+          },
+          "ended_on": {
+            "type": "date"
+          }
+        }
+      },
+      "introduction": {
+        "type": "text",
+        "analyzer": "ja_analyzer"
+      }
+    }
+  }
+}

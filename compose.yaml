@@ -1,0 +1,52 @@
+services:
+  elasticsearch:
+    build:
+      context: ./docker/elastic-search
+      dockerfile: Dockerfile
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app-network
+
+  app:
+    container_name: es-app
+    build:
+      context: .
+      dockerfile: ./docker/golang/Dockerfile
+      args:
+        - target=dev
+    ports:
+      - "8080:80"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ./api:/app
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - PORT=80
+      - ENVIRONMENT=development
+    command: ["air"]
+
+volumes:
+  elasticsearch_data:
+
+networks:
+  app-network:
+    driver: bridge 
