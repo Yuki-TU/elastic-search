@@ -1,0 +1,17 @@
+{
+  "yaml.schemas": {},
+  "json.schemas": [],
+  "files.associations": {
+    ".air.toml": "toml"
+  },
+  "toml.schema.enabled": false,
+  "files.exclude": {
+    "**/.air.toml": false
+  },
+  "search.exclude": {
+    "**/.air.toml": false
+  },
+  "eslint.workingDirectories": [],
+  "eslint.validate": [],
+  "toml.validator.enabled": false
+} 
