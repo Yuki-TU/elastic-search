@@ -11,11 +11,11 @@ import (
 
 // SearchUseCase は検索関連の操作を処理する
 type SearchUseCase struct {
-	searchService *service.SearchService
+	searchService service.Searcher
 }
 
 // NewSearchUseCase は新しい SearchUseCase を作成する
-func NewSearchUseCase(searchService *service.SearchService) *SearchUseCase {
+func NewSearchUseCase(searchService service.Searcher) *SearchUseCase {
 	return &SearchUseCase{
 		searchService: searchService,
 	}

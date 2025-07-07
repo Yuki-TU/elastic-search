@@ -10,21 +10,30 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/pkg/errors"
 )
 
-// SearchService provides business logic for search operations
+// Searcher は検索サービスのインターフェース
+type Searcher interface {
+	Search(ctx context.Context, queryStr string, index string, from, size int) (*entity.SearchResult, error)
+	AdvancedSearch(ctx context.Context, queryStr string, index string, filters map[string]string, sortFields []entity.SortField, from, size int) (*entity.SearchResult, error)
+	MultiSearch(ctx context.Context, queries []entity.SearchQuery) ([]*entity.SearchResult, error)
+	SuggestSearch(ctx context.Context, queryStr string, index string, field string, size int) (*entity.SearchResult, error)
+	FacetedSearch(ctx context.Context, queryStr string, index string, facetFields []string, from, size int) (*entity.SearchResult, error)
+}
+
+// SearchService は検索操作のビジネスロジックを提供する
 type SearchService struct {
 	repo repository.ElasticsearchRepository
 }
 
-// NewSearchService creates a new SearchService
+// NewSearchService は新しいSearchServiceを作成する
 func NewSearchService(repo repository.ElasticsearchRepository) *SearchService {
 	return &SearchService{
 		repo: repo,
 	}
 }
 
-// Search performs a search operation
+// Search は検索操作を実行する
 func (s *SearchService) Search(ctx context.Context, queryStr string, index string, from, size int) (*entity.SearchResult, error) {
-	// Validate input
+	// 入力を検証
 	if queryStr == "" {
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Search query cannot be empty")
 	}
@@ -37,28 +46,28 @@ func (s *SearchService) Search(ctx context.Context, queryStr string, index strin
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "From must be non-negative")
 	}
 
-	// Apply default values
+	// デフォルト値を適用
 	if size == 0 {
 		size = 10
 	}
 
-	// Create search query
+	// 検索クエリを作成
 	query := entity.NewSearchQuery(queryStr)
 	query.SetIndex(index)
 	query.SetPagination(from, size)
 
-	// Apply business rules to query
+	// クエリにビジネスルールを適用
 	if err := s.applySearchBusinessRules(query); err != nil {
 		return nil, err
 	}
 
-	// Perform search
+	// 検索を実行
 	result, err := s.repo.Search(ctx, query)
 	if err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Search operation failed")
 	}
 
-	// Post-process results
+	// 結果を後処理
 	if err := s.postProcessSearchResults(result); err != nil {
 		return nil, err
 	}
@@ -66,9 +75,9 @@ func (s *SearchService) Search(ctx context.Context, queryStr string, index strin
 	return result, nil
 }
 
-// AdvancedSearch performs an advanced search with filters and sorting
+// AdvancedSearch はフィルターとソートを含む高度な検索を実行する
 func (s *SearchService) AdvancedSearch(ctx context.Context, queryStr string, index string, filters map[string]string, sortFields []entity.SortField, from, size int) (*entity.SearchResult, error) {
-	// Validate input
+	// 入力を検証
 	if queryStr == "" {
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Search query cannot be empty")
 	}
@@ -81,42 +90,42 @@ func (s *SearchService) AdvancedSearch(ctx context.Context, queryStr string, ind
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "From must be non-negative")
 	}
 
-	// Apply default values
+	// デフォルト値を適用
 	if size == 0 {
 		size = 10
 	}
 
-	// Create search query
+	// 検索クエリを作成
 	query := entity.NewSearchQuery(queryStr)
 	query.SetIndex(index)
 	query.SetPagination(from, size)
 
-	// Add filters
+	// フィルターを追加
 	for field, value := range filters {
 		if field != "" && value != "" {
 			query.AddFilter(field, value)
 		}
 	}
 
-	// Add sorting
+	// ソートを追加
 	for _, sortField := range sortFields {
 		if sortField.Field != "" && (sortField.Order == "asc" || sortField.Order == "desc") {
 			query.AddSort(sortField.Field, sortField.Order)
 		}
 	}
 
-	// Apply business rules to query
+	// クエリにビジネスルールを適用
 	if err := s.applySearchBusinessRules(query); err != nil {
 		return nil, err
 	}
 
-	// Perform search
+	// 検索を実行
 	result, err := s.repo.Search(ctx, query)
 	if err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Advanced search operation failed")
 	}
 
-	// Post-process results
+	// 結果を後処理
 	if err := s.postProcessSearchResults(result); err != nil {
 		return nil, err
 	}
@@ -124,37 +133,37 @@ func (s *SearchService) AdvancedSearch(ctx context.Context, queryStr string, ind
 	return result, nil
 }
 
-// MultiSearch performs multiple search operations in a single request
+// MultiSearch は一度のリクエストで複数の検索操作を実行する
 func (s *SearchService) MultiSearch(ctx context.Context, queries []entity.SearchQuery) ([]*entity.SearchResult, error) {
 	if len(queries) == 0 {
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "No search queries provided")
 	}
 
-	// Validate all queries
+	// 全てのクエリを検証
 	for i, query := range queries {
 		if err := s.validateSearchQuery(&query); err != nil {
 			return nil, errors.NewAppError(errors.ErrCodeValidationFailed, fmt.Sprintf("Query %d validation failed: %v", i, err))
 		}
 
-		// Apply business rules to each query
+		// 各クエリにビジネスルールを適用
 		if err := s.applySearchBusinessRules(&query); err != nil {
 			return nil, errors.NewAppError(errors.ErrCodeValidationFailed, fmt.Sprintf("Query %d business rule validation failed: %v", i, err))
 		}
 	}
 
-	// Convert to query pointers
+	// クエリポインターに変換
 	queryPointers := make([]*entity.SearchQuery, len(queries))
 	for i := range queries {
 		queryPointers[i] = &queries[i]
 	}
 
-	// Perform multi-search
+	// マルチ検索を実行
 	results, err := s.repo.MultiSearch(ctx, queryPointers)
 	if err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Multi-search operation failed")
 	}
 
-	// Post-process all results
+	// 全ての結果を後処理
 	for _, result := range results {
 		if err := s.postProcessSearchResults(result); err != nil {
 			return nil, err
@@ -164,7 +173,7 @@ func (s *SearchService) MultiSearch(ctx context.Context, queries []entity.Search
 	return results, nil
 }
 
-// SuggestSearch performs a suggest/autocomplete search
+// SuggestSearch はサジェスト/オートコンプリート検索を実行する
 func (s *SearchService) SuggestSearch(ctx context.Context, queryStr string, index string, field string, size int) (*entity.SearchResult, error) {
 	if queryStr == "" {
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Search query cannot be empty")
@@ -175,29 +184,29 @@ func (s *SearchService) SuggestSearch(ctx context.Context, queryStr string, inde
 	}
 
 	if size <= 0 {
-		size = 5 // Default suggestion size
+		size = 5 // デフォルトサジェストサイズ
 	}
 
-	// Create a prefix query for suggestions
+	// サジェスト用のプレフィックスクエリを作成
 	suggestQuery := fmt.Sprintf("%s*", queryStr)
 
-	// Create search query
+	// 検索クエリを作成
 	query := entity.NewSearchQuery(suggestQuery)
 	query.SetIndex(index)
 	query.SetPagination(0, size)
 
-	// Apply business rules
+	// ビジネスルールを適用
 	if err := s.applySearchBusinessRules(query); err != nil {
 		return nil, err
 	}
 
-	// Perform search
+	// 検索を実行
 	result, err := s.repo.Search(ctx, query)
 	if err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Suggest search operation failed")
 	}
 
-	// Post-process results
+	// 結果を後処理
 	if err := s.postProcessSearchResults(result); err != nil {
 		return nil, err
 	}
@@ -205,7 +214,7 @@ func (s *SearchService) SuggestSearch(ctx context.Context, queryStr string, inde
 	return result, nil
 }
 
-// FacetedSearch performs a faceted search with aggregations
+// FacetedSearch は集約を含むファセット検索を実行する
 func (s *SearchService) FacetedSearch(ctx context.Context, queryStr string, index string, facetFields []string, from, size int) (*entity.SearchResult, error) {
 	if queryStr == "" {
 		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Search query cannot be empty")
@@ -388,3 +397,6 @@ func (s *SearchService) addComputedFields(hit *entity.Hit) error {
 
 	return nil
 }
+
+// インターフェースの実装確認
+var _ Searcher = (*SearchService)(nil)

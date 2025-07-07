@@ -11,27 +11,27 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/pkg/errors"
 )
 
-// Repository implements the ElasticsearchRepository interface
+// Repository はElasticsearchRepositoryインターフェースを実装する
 type Repository struct {
 	client *Client
 }
 
-// NewRepository creates a new Elasticsearch repository
+// NewRepository は新しいElasticsearchリポジトリを作成する
 func NewRepository(client *Client) repository.ElasticsearchRepository {
 	return &Repository{
 		client: client,
 	}
 }
 
-// CreateDocument creates a new document in Elasticsearch
+// CreateDocument はElasticsearchに新しいドキュメントを作成する
 func (r *Repository) CreateDocument(ctx context.Context, doc *entity.Document) error {
-	// Convert document to JSON
+	// ドキュメントをJSONに変換
 	body, err := json.Marshal(doc.Source)
 	if err != nil {
 		return errors.WrapError(err, errors.ErrCodeDocumentCreateFailed, "Failed to marshal document")
 	}
 
-	// Create the document
+	// ドキュメントを作成
 	res, err := r.client.es.Index(
 		doc.Index,
 		bytes.NewReader(body),
@@ -48,13 +48,13 @@ func (r *Repository) CreateDocument(ctx context.Context, doc *entity.Document) e
 		return errors.NewAppError(errors.ErrCodeDocumentCreateFailed, fmt.Sprintf("Document indexing failed with status: %s", res.Status()))
 	}
 
-	// Parse response to get document ID
+	// レスポンスを解析してドキュメントIDを取得
 	var result map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return errors.WrapError(err, errors.ErrCodeDocumentCreateFailed, "Failed to parse index response")
 	}
 
-	// Set document ID from response
+	// レスポンスからドキュメントIDを設定
 	if id, ok := result["_id"].(string); ok {
 		doc.SetID(id)
 	}
@@ -62,7 +62,7 @@ func (r *Repository) CreateDocument(ctx context.Context, doc *entity.Document) e
 	return nil
 }
 
-// GetDocument retrieves a document by ID
+// GetDocument はIDでドキュメントを取得する
 func (r *Repository) GetDocument(ctx context.Context, index, id string) (*entity.Document, error) {
 	res, err := r.client.es.Get(
 		index,
@@ -81,23 +81,23 @@ func (r *Repository) GetDocument(ctx context.Context, index, id string) (*entity
 		return nil, errors.NewAppError(errors.ErrCodeDocumentNotFound, fmt.Sprintf("Document retrieval failed with status: %s", res.Status()))
 	}
 
-	// Parse response
+	// レスポンスを解析
 	var result map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeDocumentNotFound, "Failed to parse get response")
 	}
 
-	// Extract document data
+	// ドキュメントデータを抽出
 	source, ok := result["_source"].(map[string]any)
 	if !ok {
 		return nil, errors.NewAppError(errors.ErrCodeDocumentNotFound, "Invalid document format")
 	}
 
-	// Create document entity
+	// ドキュメントエンティティを作成
 	doc := entity.NewDocument(index, source)
 	doc.SetID(id)
 
-	// Set version if available
+	// バージョンが利用可能な場合は設定
 	if version, ok := result["_version"].(float64); ok {
 		doc.Version = int64(version)
 	}
@@ -105,15 +105,15 @@ func (r *Repository) GetDocument(ctx context.Context, index, id string) (*entity
 	return doc, nil
 }
 
-// UpdateDocument updates an existing document
+// UpdateDocument は既存のドキュメントを更新する
 func (r *Repository) UpdateDocument(ctx context.Context, doc *entity.Document) error {
-	// Convert document to JSON
+	// ドキュメントをJSONに変換
 	body, err := json.Marshal(doc.Source)
 	if err != nil {
 		return errors.WrapError(err, errors.ErrCodeDocumentUpdateFailed, "Failed to marshal document")
 	}
 
-	// Update the document
+	// ドキュメントを更新
 	res, err := r.client.es.Index(
 		doc.Index,
 		bytes.NewReader(body),
@@ -130,13 +130,13 @@ func (r *Repository) UpdateDocument(ctx context.Context, doc *entity.Document) e
 		return errors.NewAppError(errors.ErrCodeDocumentUpdateFailed, fmt.Sprintf("Document update failed with status: %s", res.Status()))
 	}
 
-	// Parse response to get version
+	// レスポンスを解析してバージョンを取得
 	var result map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return errors.WrapError(err, errors.ErrCodeDocumentUpdateFailed, "Failed to parse update response")
 	}
 
-	// Update document version
+	// ドキュメントバージョンを更新
 	if version, ok := result["_version"].(float64); ok {
 		doc.Version = int64(version)
 	}
@@ -144,7 +144,7 @@ func (r *Repository) UpdateDocument(ctx context.Context, doc *entity.Document) e
 	return nil
 }
 
-// DeleteDocument deletes a document by ID
+// DeleteDocument はIDでドキュメントを削除する
 func (r *Repository) DeleteDocument(ctx context.Context, index, id string) error {
 	res, err := r.client.es.Delete(
 		index,
@@ -167,18 +167,18 @@ func (r *Repository) DeleteDocument(ctx context.Context, index, id string) error
 	return nil
 }
 
-// Search performs a search operation
+// Search は検索操作を実行する
 func (r *Repository) Search(ctx context.Context, query *entity.SearchQuery) (*entity.SearchResult, error) {
-	// Build search query
+	// 検索クエリを構築
 	searchQuery := r.buildSearchQuery(query)
 
-	// Convert query to JSON
+	// クエリをJSONに変換
 	body, err := json.Marshal(searchQuery)
 	if err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Failed to marshal search query")
 	}
 
-	// Perform search
+	// 検索を実行
 	res, err := r.client.es.Search(
 		r.client.es.Search.WithContext(ctx),
 		r.client.es.Search.WithIndex(query.Index),
@@ -195,24 +195,24 @@ func (r *Repository) Search(ctx context.Context, query *entity.SearchQuery) (*en
 		return nil, errors.NewAppError(errors.ErrCodeSearchFailed, fmt.Sprintf("Search failed with status: %s", res.Status()))
 	}
 
-	// Parse response
+	// レスポンスを解析
 	var result map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Failed to parse search response")
 	}
 
-	// Build search result
+	// 検索結果を構築
 	searchResult := r.buildSearchResult(query, result)
 
 	return searchResult, nil
 }
 
-// MultiSearch performs multiple search operations
+// MultiSearch は複数の検索操作を実行する
 func (r *Repository) MultiSearch(ctx context.Context, queries []*entity.SearchQuery) ([]*entity.SearchResult, error) {
-	// Build multi-search body
+	// マルチ検索ボディを構築
 	var body bytes.Buffer
 	for _, query := range queries {
-		// Header
+		// ヘッダー
 		header := map[string]any{
 			"index": query.Index,
 		}
@@ -220,14 +220,14 @@ func (r *Repository) MultiSearch(ctx context.Context, queries []*entity.SearchQu
 		body.Write(headerJSON)
 		body.WriteByte('\n')
 
-		// Query
+		// クエリ
 		searchQuery := r.buildSearchQuery(query)
 		queryJSON, _ := json.Marshal(searchQuery)
 		body.Write(queryJSON)
 		body.WriteByte('\n')
 	}
 
-	// Perform multi-search
+	// マルチ検索を実行
 	res, err := r.client.es.Msearch(
 		&body,
 		r.client.es.Msearch.WithContext(ctx),
@@ -241,13 +241,13 @@ func (r *Repository) MultiSearch(ctx context.Context, queries []*entity.SearchQu
 		return nil, errors.NewAppError(errors.ErrCodeSearchFailed, fmt.Sprintf("Multi-search failed with status: %s", res.Status()))
 	}
 
-	// Parse response
+	// レスポンスを解析
 	var result map[string]any
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, errors.WrapError(err, errors.ErrCodeSearchFailed, "Failed to parse multi-search response")
 	}
 
-	// Build search results
+	// 検索結果を構築
 	var results []*entity.SearchResult
 	if responses, ok := result["responses"].([]any); ok {
 		for i, response := range responses {
@@ -261,15 +261,15 @@ func (r *Repository) MultiSearch(ctx context.Context, queries []*entity.SearchQu
 	return results, nil
 }
 
-// CreateIndex creates a new index
+// CreateIndex は新しいインデックスを作成する
 func (r *Repository) CreateIndex(ctx context.Context, index string, mapping map[string]any) error {
-	// Convert mapping to JSON
+	// マッピングをJSONに変換
 	body, err := json.Marshal(mapping)
 	if err != nil {
 		return errors.WrapError(err, errors.ErrCodeIndexCreateFailed, "Failed to marshal index mapping")
 	}
 
-	// Create index
+	// インデックスを作成
 	res, err := r.client.es.Indices.Create(
 		index,
 		r.client.es.Indices.Create.WithContext(ctx),
@@ -287,7 +287,7 @@ func (r *Repository) CreateIndex(ctx context.Context, index string, mapping map[
 	return nil
 }
 
-// DeleteIndex deletes an index
+// DeleteIndex はインデックスを削除する
 func (r *Repository) DeleteIndex(ctx context.Context, index string) error {
 	res, err := r.client.es.Indices.Delete(
 		[]string{index},
@@ -308,7 +308,7 @@ func (r *Repository) DeleteIndex(ctx context.Context, index string) error {
 	return nil
 }
 
-// IndexExists checks if an index exists
+// IndexExists はインデックスが存在するかを確認する
 func (r *Repository) IndexExists(ctx context.Context, index string) (bool, error) {
 	res, err := r.client.es.Indices.Exists(
 		[]string{index},
@@ -322,12 +322,12 @@ func (r *Repository) IndexExists(ctx context.Context, index string) (bool, error
 	return res.StatusCode == 200, nil
 }
 
-// BulkIndex performs bulk indexing of documents
+// BulkIndex はドキュメントのバルクインデックスを実行する
 func (r *Repository) BulkIndex(ctx context.Context, documents []*entity.Document) error {
-	// Build bulk body
+	// バルクボディを構築
 	var body bytes.Buffer
 	for _, doc := range documents {
-		// Action and metadata
+		// アクションとメタデータ
 		action := map[string]any{
 			"index": map[string]any{
 				"_index": doc.Index,
@@ -338,13 +338,13 @@ func (r *Repository) BulkIndex(ctx context.Context, documents []*entity.Document
 		body.Write(actionJSON)
 		body.WriteByte('\n')
 
-		// Document source
+		// ドキュメントソース
 		sourceJSON, _ := json.Marshal(doc.Source)
 		body.Write(sourceJSON)
 		body.WriteByte('\n')
 	}
 
-	// Perform bulk operation
+	// バルク操作を実行
 	res, err := r.client.es.Bulk(
 		&body,
 		r.client.es.Bulk.WithContext(ctx),
@@ -362,16 +362,16 @@ func (r *Repository) BulkIndex(ctx context.Context, documents []*entity.Document
 	return nil
 }
 
-// BulkDelete performs bulk deletion of documents
+// BulkDelete はドキュメントのバルク削除を実行する
 func (r *Repository) BulkDelete(ctx context.Context, indices []string, ids []string) error {
 	if len(indices) != len(ids) {
 		return errors.NewAppError(errors.ErrCodeValidationFailed, "Indices and IDs arrays must have the same length")
 	}
 
-	// Build bulk body
+	// バルクボディを構築
 	var body bytes.Buffer
 	for i, index := range indices {
-		// Action and metadata
+		// アクションとメタデータ
 		action := map[string]any{
 			"delete": map[string]any{
 				"_index": index,
@@ -383,7 +383,7 @@ func (r *Repository) BulkDelete(ctx context.Context, indices []string, ids []str
 		body.WriteByte('\n')
 	}
 
-	// Perform bulk operation
+	// バルク操作を実行
 	res, err := r.client.es.Bulk(
 		&body,
 		r.client.es.Bulk.WithContext(ctx),
@@ -401,7 +401,7 @@ func (r *Repository) BulkDelete(ctx context.Context, indices []string, ids []str
 	return nil
 }
 
-// Health returns the health status of the Elasticsearch cluster
+// Health はElasticsearchクラスターの健康状態を返す
 func (r *Repository) Health(ctx context.Context) error {
 	healthy, err := r.client.IsHealthy(ctx)
 	if err != nil {
@@ -415,7 +415,7 @@ func (r *Repository) Health(ctx context.Context) error {
 	return nil
 }
 
-// Info returns information about the Elasticsearch cluster
+// Info はElasticsearchクラスターの情報を返す
 func (r *Repository) Info(ctx context.Context) (map[string]any, error) {
 	info, err := r.client.Info(ctx)
 	if err != nil {
@@ -425,9 +425,9 @@ func (r *Repository) Info(ctx context.Context) (map[string]any, error) {
 	return info, nil
 }
 
-// Helper methods
+// ヘルパーメソッド
 
-// buildSearchQuery builds an Elasticsearch query from a SearchQuery entity
+// buildSearchQuery はSearchQueryエンティティからElasticsearchクエリを構築する
 func (r *Repository) buildSearchQuery(query *entity.SearchQuery) map[string]any {
 	esQuery := map[string]any{
 		"query": map[string]any{
@@ -440,12 +440,12 @@ func (r *Repository) buildSearchQuery(query *entity.SearchQuery) map[string]any 
 		"size": query.Size,
 	}
 
-	// Add filters
+	// フィルターを追加
 	if len(query.Filters) > 0 {
 		filters := make([]map[string]any, 0, len(query.Filters))
 		for field, value := range query.Filters {
 			if field == "_facets" {
-				// Handle facet aggregations
+				// ファセット集約を処理
 				continue
 			}
 			filters = append(filters, map[string]any{
@@ -465,7 +465,7 @@ func (r *Repository) buildSearchQuery(query *entity.SearchQuery) map[string]any 
 		}
 	}
 
-	// Add sorting
+	// ソートを追加
 	if len(query.Sort) > 0 {
 		sort := make([]map[string]any, 0, len(query.Sort))
 		for _, sortField := range query.Sort {
@@ -481,25 +481,25 @@ func (r *Repository) buildSearchQuery(query *entity.SearchQuery) map[string]any 
 	return esQuery
 }
 
-// buildSearchResult builds a SearchResult entity from Elasticsearch response
+// buildSearchResult はElasticsearchレスポンスからSearchResultエンティティを構築する
 func (r *Repository) buildSearchResult(query *entity.SearchQuery, result map[string]any) *entity.SearchResult {
 	searchResult := entity.NewSearchResult(*query)
 
-	// Extract hits
+	// ヒットを抽出
 	if hits, ok := result["hits"].(map[string]any); ok {
-		// Total hits
+		// 総ヒット数
 		if total, ok := hits["total"].(map[string]any); ok {
 			if value, ok := total["value"].(float64); ok {
 				searchResult.Total = int64(value)
 			}
 		}
 
-		// Max score
+		// 最大スコア
 		if maxScore, ok := hits["max_score"].(float64); ok {
 			searchResult.MaxScore = maxScore
 		}
 
-		// Individual hits
+		// 個別のヒット
 		if hitsList, ok := hits["hits"].([]any); ok {
 			for _, hit := range hitsList {
 				if hitMap, ok := hit.(map[string]any); ok {
@@ -515,7 +515,7 @@ func (r *Repository) buildSearchResult(query *entity.SearchQuery, result map[str
 		}
 	}
 
-	// Extract timing information
+	// タイミング情報を抽出
 	if took, ok := result["took"].(float64); ok {
 		searchResult.Took = int64(took)
 	}
@@ -527,7 +527,7 @@ func (r *Repository) buildSearchResult(query *entity.SearchQuery, result map[str
 	return searchResult
 }
 
-// Helper functions for type conversion
+// 型変換用のヘルパー関数
 func getString(m map[string]any, key string) string {
 	if val, ok := m[key].(string); ok {
 		return val

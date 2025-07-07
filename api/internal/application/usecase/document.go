@@ -11,11 +11,11 @@ import (
 
 // DocumentUseCase はドキュメント関連のビジネスロジックを処理する
 type DocumentUseCase struct {
-	documentService *service.DocumentService
+	documentService service.DocumentHandler
 }
 
 // NewDocumentUseCase は新しい DocumentUseCase を作成する
-func NewDocumentUseCase(documentService *service.DocumentService) *DocumentUseCase {
+func NewDocumentUseCase(documentService service.DocumentHandler) *DocumentUseCase {
 	return &DocumentUseCase{
 		documentService: documentService,
 	}
