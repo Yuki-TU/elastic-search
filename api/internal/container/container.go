@@ -13,116 +13,116 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/internal/interface/middleware"
 )
 
-// Container holds all dependencies
+// Container は全ての依存関係を保持する
 type Container struct {
-	// Configuration
+	// 設定
 	Config *config.Config
 
-	// Infrastructure
+	// インフラストラクチャ
 	ElasticsearchClient *elasticsearch.Client
 	ElasticsearchRepo   repository.ElasticsearchRepository
 	Logger              *log.Logger
 
-	// Domain Services
+	// ドメインサービス
 	DocumentService *service.DocumentService
 	SearchService   *service.SearchService
 
-	// Use Cases
+	// ユースケース
 	DocumentUseCase *usecase.DocumentUseCase
 	SearchUseCase   *usecase.SearchUseCase
 
-	// Handlers
+	// ハンドラー
 	DocumentHandler *handler.DocumentHandler
 	SearchHandler   *handler.SearchHandler
 	HealthHandler   *handler.HealthHandler
 
-	// Middleware
+	// ミドルウェア
 	LoggingMiddleware *middleware.LoggingMiddleware
 }
 
-// NewContainer creates a new container with all dependencies
+// NewContainer は全ての依存関係を持つ新しいコンテナを作成する
 func NewContainer() (*Container, error) {
 	container := &Container{}
 
-	// Initialize configuration
+	// 設定を初期化
 	container.Config = config.NewConfig()
 
-	// Initialize logger
+	// ロガーを初期化
 	container.Logger = log.New(os.Stdout, "[ElasticSearch-API] ", log.LstdFlags|log.Lshortfile)
 
-	// Initialize infrastructure
+	// インフラストラクチャを初期化
 	if err := container.initInfrastructure(); err != nil {
 		return nil, err
 	}
 
-	// Initialize domain services
+	// ドメインサービスを初期化
 	container.initDomainServices()
 
-	// Initialize use cases
+	// ユースケースを初期化
 	container.initUseCases()
 
-	// Initialize handlers
+	// ハンドラーを初期化
 	container.initHandlers()
 
-	// Initialize middleware
+	// ミドルウェアを初期化
 	container.initMiddleware()
 
 	return container, nil
 }
 
-// initInfrastructure initializes infrastructure components
+// initInfrastructure はインフラストラクチャコンポーネントを初期化する
 func (c *Container) initInfrastructure() error {
 	var err error
 
-	// Initialize Elasticsearch client
+	// Elasticsearchクライアントを初期化
 	c.ElasticsearchClient, err = elasticsearch.NewClient(c.Config)
 	if err != nil {
 		return err
 	}
 
-	// Initialize Elasticsearch repository
+	// Elasticsearchリポジトリを初期化
 	c.ElasticsearchRepo = elasticsearch.NewRepository(c.ElasticsearchClient)
 
 	return nil
 }
 
-// initDomainServices initializes domain services
+// initDomainServices はドメインサービスを初期化する
 func (c *Container) initDomainServices() {
-	// Initialize document service
+	// ドキュメントサービスを初期化
 	c.DocumentService = service.NewDocumentService(c.ElasticsearchRepo)
 
-	// Initialize search service
+	// 検索サービスを初期化
 	c.SearchService = service.NewSearchService(c.ElasticsearchRepo)
 }
 
-// initUseCases initializes use cases
+// initUseCases はユースケースを初期化する
 func (c *Container) initUseCases() {
-	// Initialize document use case
+	// ドキュメントユースケースを初期化
 	c.DocumentUseCase = usecase.NewDocumentUseCase(c.DocumentService)
 
-	// Initialize search use case
+	// 検索ユースケースを初期化
 	c.SearchUseCase = usecase.NewSearchUseCase(c.SearchService)
 }
 
-// initHandlers initializes handlers
+// initHandlers はハンドラーを初期化する
 func (c *Container) initHandlers() {
-	// Initialize document handler
+	// ドキュメントハンドラーを初期化
 	c.DocumentHandler = handler.NewDocumentHandler(c.DocumentUseCase)
 
-	// Initialize search handler
+	// 検索ハンドラーを初期化
 	c.SearchHandler = handler.NewSearchHandler(c.SearchUseCase)
 
-	// Initialize health handler
+	// ヘルスハンドラーを初期化
 	c.HealthHandler = handler.NewHealthHandler(c.ElasticsearchClient)
 }
 
-// initMiddleware initializes middleware
+// initMiddleware はミドルウェアを初期化する
 func (c *Container) initMiddleware() {
-	// Initialize logging middleware
+	// ログミドルウェアを初期化
 	c.LoggingMiddleware = middleware.NewLoggingMiddleware(c.Logger)
 }
 
-// Cleanup performs cleanup operations
+// Cleanup はクリーンアップ操作を実行する
 func (c *Container) Cleanup() error {
 	if c.ElasticsearchClient != nil {
 		return c.ElasticsearchClient.Close()
@@ -130,72 +130,72 @@ func (c *Container) Cleanup() error {
 	return nil
 }
 
-// GetConfig returns the configuration
+// GetConfig は設定を返す
 func (c *Container) GetConfig() *config.Config {
 	return c.Config
 }
 
-// GetLogger returns the logger
+// GetLogger はロガーを返す
 func (c *Container) GetLogger() *log.Logger {
 	return c.Logger
 }
 
-// GetElasticsearchClient returns the Elasticsearch client
+// GetElasticsearchClient はElasticsearchクライアントを返す
 func (c *Container) GetElasticsearchClient() *elasticsearch.Client {
 	return c.ElasticsearchClient
 }
 
-// GetElasticsearchRepo returns the Elasticsearch repository
+// GetElasticsearchRepo はElasticsearchリポジトリを返す
 func (c *Container) GetElasticsearchRepo() repository.ElasticsearchRepository {
 	return c.ElasticsearchRepo
 }
 
-// GetDocumentService returns the document service
+// GetDocumentService はドキュメントサービスを返す
 func (c *Container) GetDocumentService() *service.DocumentService {
 	return c.DocumentService
 }
 
-// GetSearchService returns the search service
+// GetSearchService は検索サービスを返す
 func (c *Container) GetSearchService() *service.SearchService {
 	return c.SearchService
 }
 
-// GetDocumentUseCase returns the document use case
+// GetDocumentUseCase はドキュメントユースケースを返す
 func (c *Container) GetDocumentUseCase() *usecase.DocumentUseCase {
 	return c.DocumentUseCase
 }
 
-// GetSearchUseCase returns the search use case
+// GetSearchUseCase は検索ユースケースを返す
 func (c *Container) GetSearchUseCase() *usecase.SearchUseCase {
 	return c.SearchUseCase
 }
 
-// GetDocumentHandler returns the document handler
+// GetDocumentHandler はドキュメントハンドラーを返す
 func (c *Container) GetDocumentHandler() *handler.DocumentHandler {
 	return c.DocumentHandler
 }
 
-// GetSearchHandler returns the search handler
+// GetSearchHandler は検索ハンドラーを返す
 func (c *Container) GetSearchHandler() *handler.SearchHandler {
 	return c.SearchHandler
 }
 
-// GetHealthHandler returns the health handler
+// GetHealthHandler はヘルスハンドラーを返す
 func (c *Container) GetHealthHandler() *handler.HealthHandler {
 	return c.HealthHandler
 }
 
-// GetLoggingMiddleware returns the logging middleware
+// GetLoggingMiddleware はログミドルウェアを返す
 func (c *Container) GetLoggingMiddleware() *middleware.LoggingMiddleware {
 	return c.LoggingMiddleware
 }
 
-// Interface compliance checks
+// インターフェースの実装確認
 var (
 	_ ContainerInterface = (*Container)(nil)
 )
 
-// ContainerInterface defines the container interface
+// ContainerInterface はコンテナインターフェースを定義する
 type ContainerInterface interface {
 	GetConfig() *config.Config
 	GetLogger() *log.Logger
@@ -212,7 +212,7 @@ type ContainerInterface interface {
 	Cleanup() error
 }
 
-// MockContainer is a mock container for testing
+// MockContainer はテスト用のモックコンテナ
 type MockContainer struct {
 	MockConfig              *config.Config
 	MockLogger              *log.Logger
@@ -228,77 +228,77 @@ type MockContainer struct {
 	MockLoggingMiddleware   *middleware.LoggingMiddleware
 }
 
-// NewMockContainer creates a new mock container
+// NewMockContainer は新しいモックコンテナを作成する
 func NewMockContainer() *MockContainer {
 	return &MockContainer{}
 }
 
-// GetConfig returns mock config
+// GetConfig はモック設定を返す
 func (m *MockContainer) GetConfig() *config.Config {
 	return m.MockConfig
 }
 
-// GetLogger returns mock logger
+// GetLogger はモックロガーを返す
 func (m *MockContainer) GetLogger() *log.Logger {
 	return m.MockLogger
 }
 
-// GetElasticsearchClient returns mock Elasticsearch client
+// GetElasticsearchClient はモックElasticsearchクライアントを返す
 func (m *MockContainer) GetElasticsearchClient() *elasticsearch.Client {
 	return m.MockElasticsearchClient
 }
 
-// GetElasticsearchRepo returns mock Elasticsearch repository
+// GetElasticsearchRepo はモックElasticsearchリポジトリを返す
 func (m *MockContainer) GetElasticsearchRepo() repository.ElasticsearchRepository {
 	return m.MockElasticsearchRepo
 }
 
-// GetDocumentService returns mock document service
+// GetDocumentService はモックドキュメントサービスを返す
 func (m *MockContainer) GetDocumentService() *service.DocumentService {
 	return m.MockDocumentService
 }
 
-// GetSearchService returns mock search service
+// GetSearchService はモック検索サービスを返す
 func (m *MockContainer) GetSearchService() *service.SearchService {
 	return m.MockSearchService
 }
 
-// GetDocumentUseCase returns mock document use case
+// GetDocumentUseCase はモックドキュメントユースケースを返す
 func (m *MockContainer) GetDocumentUseCase() *usecase.DocumentUseCase {
 	return m.MockDocumentUseCase
 }
 
-// GetSearchUseCase returns mock search use case
+// GetSearchUseCase はモック検索ユースケースを返す
 func (m *MockContainer) GetSearchUseCase() *usecase.SearchUseCase {
 	return m.MockSearchUseCase
 }
 
-// GetDocumentHandler returns mock document handler
+// GetDocumentHandler はモックドキュメントハンドラーを返す
 func (m *MockContainer) GetDocumentHandler() *handler.DocumentHandler {
 	return m.MockDocumentHandler
 }
 
-// GetSearchHandler returns mock search handler
+// GetSearchHandler はモック検索ハンドラーを返す
 func (m *MockContainer) GetSearchHandler() *handler.SearchHandler {
 	return m.MockSearchHandler
 }
 
-// GetHealthHandler returns mock health handler
+// GetHealthHandler はモックヘルスハンドラーを返す
 func (m *MockContainer) GetHealthHandler() *handler.HealthHandler {
 	return m.MockHealthHandler
 }
 
-// GetLoggingMiddleware returns mock logging middleware
+// GetLoggingMiddleware はモックログミドルウェアを返す
 func (m *MockContainer) GetLoggingMiddleware() *middleware.LoggingMiddleware {
 	return m.MockLoggingMiddleware
 }
 
-// Cleanup performs mock cleanup
+// Cleanup はモッククリーンアップを実行する
 func (m *MockContainer) Cleanup() error {
 	return nil
 }
 
-// Interface compliance check
+// インターフェースの実装確認
 var (
 	_ ContainerInterface = (*MockContainer)(nil)
 )

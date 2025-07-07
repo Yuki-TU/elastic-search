@@ -6,28 +6,28 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/internal/domain/entity"
 )
 
-// ElasticsearchRepository defines the interface for Elasticsearch operations
+// ElasticsearchRepository は Elasticsearch 操作のインターフェースを定義する
 type ElasticsearchRepository interface {
-	// Document operations
+	// ドキュメント操作
 	CreateDocument(ctx context.Context, doc *entity.Document) error
 	GetDocument(ctx context.Context, index, id string) (*entity.Document, error)
 	UpdateDocument(ctx context.Context, doc *entity.Document) error
 	DeleteDocument(ctx context.Context, index, id string) error
 
-	// Search operations
+	// 検索操作
 	Search(ctx context.Context, query *entity.SearchQuery) (*entity.SearchResult, error)
 	MultiSearch(ctx context.Context, queries []*entity.SearchQuery) ([]*entity.SearchResult, error)
 
-	// Index operations
+	// インデックス操作
 	CreateIndex(ctx context.Context, index string, mapping map[string]any) error
 	DeleteIndex(ctx context.Context, index string) error
 	IndexExists(ctx context.Context, index string) (bool, error)
 
-	// Bulk operations
+	// バルク操作
 	BulkIndex(ctx context.Context, documents []*entity.Document) error
 	BulkDelete(ctx context.Context, indices []string, ids []string) error
 
-	// Health and info
+	// ヘルスチェックと情報取得
 	Health(ctx context.Context) error
 	Info(ctx context.Context) (map[string]any, error)
 }

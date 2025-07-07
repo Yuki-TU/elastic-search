@@ -9,108 +9,108 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/pkg/errors"
 )
 
-// DocumentUseCase handles document-related business logic
+// DocumentUseCase はドキュメント関連のビジネスロジックを処理する
 type DocumentUseCase struct {
 	documentService *service.DocumentService
 }
 
-// NewDocumentUseCase creates a new DocumentUseCase
+// NewDocumentUseCase は新しい DocumentUseCase を作成する
 func NewDocumentUseCase(documentService *service.DocumentService) *DocumentUseCase {
 	return &DocumentUseCase{
 		documentService: documentService,
 	}
 }
 
-// CreateDocument creates a new document
+// CreateDocument は新しいドキュメントを作成する
 func (uc *DocumentUseCase) CreateDocument(ctx context.Context, req *dto.CreateDocumentRequest) (*dto.DocumentDTO, error) {
-	// Validate request
+	// リクエストを検証
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Create document through domain service
+	// ドメインサービスを通じてドキュメントを作成
 	doc, err := uc.documentService.CreateDocument(ctx, req.Index, req.Source)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to DTO
+	// DTOに変換
 	return uc.entityToDTO(doc), nil
 }
 
-// CreateDocumentWithID creates a document with a specific ID
+// CreateDocumentWithID は指定されたIDでドキュメントを作成する
 func (uc *DocumentUseCase) CreateDocumentWithID(ctx context.Context, req *dto.CreateDocumentRequest) (*dto.DocumentDTO, error) {
-	// Validate request
+	// リクエストを検証
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
 
 	if req.ID == "" {
-		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Document ID cannot be empty for CreateDocumentWithID")
+		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "CreateDocumentWithIDではドキュメントIDを空にできません")
 	}
 
-	// Create document with ID through domain service
+	// ドメインサービスを通じてIDありでドキュメントを作成
 	doc, err := uc.documentService.CreateDocumentWithID(ctx, req.Index, req.ID, req.Source)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to DTO
+	// DTOに変換
 	return uc.entityToDTO(doc), nil
 }
 
-// GetDocument retrieves a document by index and ID
+// GetDocument はインデックスとIDでドキュメントを取得する
 func (uc *DocumentUseCase) GetDocument(ctx context.Context, index, id string) (*dto.DocumentDTO, error) {
-	// Validate input
+	// 入力を検証
 	if index == "" {
-		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Index cannot be empty")
+		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "インデックスは空にできません")
 	}
 	if id == "" {
-		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "Document ID cannot be empty")
+		return nil, errors.NewAppError(errors.ErrCodeValidationFailed, "ドキュメントIDは空にできません")
 	}
 
-	// Get document through domain service
+	// ドメインサービスを通じてドキュメントを取得
 	doc, err := uc.documentService.GetDocument(ctx, index, id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to DTO
+	// DTOに変換
 	return uc.entityToDTO(doc), nil
 }
 
-// UpdateDocument updates an existing document
+// UpdateDocument は既存のドキュメントを更新する
 func (uc *DocumentUseCase) UpdateDocument(ctx context.Context, req *dto.UpdateDocumentRequest) (*dto.DocumentDTO, error) {
-	// Validate request
+	// リクエストを検証
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Update document through domain service
+	// ドメインサービスを通じてドキュメントを更新
 	doc, err := uc.documentService.UpdateDocument(ctx, req.Index, req.ID, req.Source)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to DTO
+	// DTOに変換
 	return uc.entityToDTO(doc), nil
 }
 
-// DeleteDocument deletes a document
+// DeleteDocument はドキュメントを削除する
 func (uc *DocumentUseCase) DeleteDocument(ctx context.Context, req *dto.DeleteDocumentRequest) error {
-	// Validate request
+	// リクエストを検証
 	if req.Index == "" {
-		return errors.NewAppError(errors.ErrCodeValidationFailed, "Index cannot be empty")
+		return errors.NewAppError(errors.ErrCodeValidationFailed, "インデックスは空にできません")
 	}
 	if req.ID == "" {
-		return errors.NewAppError(errors.ErrCodeValidationFailed, "Document ID cannot be empty")
+		return errors.NewAppError(errors.ErrCodeValidationFailed, "ドキュメントIDは空にできません")
 	}
 
-	// Delete document through domain service
+	// ドメインサービスを通じてドキュメントを削除
 	return uc.documentService.DeleteDocument(ctx, req.Index, req.ID)
 }
 
-// Helper method to convert entity to DTO
+// entityToDTO はエンティティをDTOに変換するヘルパーメソッド
 func (uc *DocumentUseCase) entityToDTO(doc *entity.Document) *dto.DocumentDTO {
 	return &dto.DocumentDTO{
 		ID:       doc.ID,

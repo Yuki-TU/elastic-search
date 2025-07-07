@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Document represents a document in Elasticsearch
+// Document は Elasticsearch のドキュメントを表す
 type Document struct {
 	ID       string         `json:"id"`
 	Index    string         `json:"index"`
@@ -14,7 +14,7 @@ type Document struct {
 	Modified time.Time      `json:"modified"`
 }
 
-// NewDocument creates a new Document instance
+// NewDocument は新しい Document インスタンスを作成する
 func NewDocument(index string, source map[string]any) *Document {
 	now := time.Now()
 	return &Document{
@@ -26,25 +26,25 @@ func NewDocument(index string, source map[string]any) *Document {
 	}
 }
 
-// SetID sets the document ID
+// SetID はドキュメント ID を設定する
 func (d *Document) SetID(id string) {
 	d.ID = id
 }
 
-// UpdateSource updates the document source and increment version
+// UpdateSource はドキュメントのソースを更新し、バージョンをインクリメントする
 func (d *Document) UpdateSource(source map[string]any) {
 	d.Source = source
 	d.Version++
 	d.Modified = time.Now()
 }
 
-// GetField returns a specific field from the document source
+// GetField はドキュメントソースから特定のフィールドを取得する
 func (d *Document) GetField(field string) (any, bool) {
 	value, exists := d.Source[field]
 	return value, exists
 }
 
-// SetField sets a specific field in the document source
+// SetField はドキュメントソースに特定のフィールドを設定する
 func (d *Document) SetField(field string, value any) {
 	d.Source[field] = value
 	d.Modified = time.Now()

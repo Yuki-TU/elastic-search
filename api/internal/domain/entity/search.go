@@ -1,6 +1,6 @@
 package entity
 
-// SearchQuery represents a search query structure
+// SearchQuery は検索クエリ構造を表す
 type SearchQuery struct {
 	Query   string            `json:"query"`
 	Index   string            `json:"index,omitempty"`
@@ -10,13 +10,13 @@ type SearchQuery struct {
 	Sort    []SortField       `json:"sort,omitempty"`
 }
 
-// SortField represents a field to sort by
+// SortField はソートフィールドを表す
 type SortField struct {
 	Field string `json:"field"`
-	Order string `json:"order"` // "asc" or "desc"
+	Order string `json:"order"` // "asc" または "desc"
 }
 
-// SearchResult represents the result of a search operation
+// SearchResult は検索操作の結果を表す
 type SearchResult struct {
 	Query    SearchQuery `json:"query"`
 	Hits     []Hit       `json:"hits"`
@@ -26,7 +26,7 @@ type SearchResult struct {
 	TimedOut bool        `json:"timed_out"`
 }
 
-// Hit represents a single search result
+// Hit は単一の検索結果を表す
 type Hit struct {
 	Index  string         `json:"_index"`
 	ID     string         `json:"_id"`
@@ -34,7 +34,7 @@ type Hit struct {
 	Source map[string]any `json:"_source"`
 }
 
-// NewSearchQuery creates a new SearchQuery instance
+// NewSearchQuery は新しい SearchQuery インスタンスを作成する
 func NewSearchQuery(query string) *SearchQuery {
 	return &SearchQuery{
 		Query:   query,
@@ -45,23 +45,23 @@ func NewSearchQuery(query string) *SearchQuery {
 	}
 }
 
-// SetIndex sets the index to search in
+// SetIndex は検索対象のインデックスを設定する
 func (sq *SearchQuery) SetIndex(index string) {
 	sq.Index = index
 }
 
-// AddFilter adds a filter to the search query
+// AddFilter は検索クエリにフィルターを追加する
 func (sq *SearchQuery) AddFilter(field, value string) {
 	sq.Filters[field] = value
 }
 
-// SetPagination sets the pagination parameters
+// SetPagination はページネーションパラメータを設定する
 func (sq *SearchQuery) SetPagination(from, size int) {
 	sq.From = from
 	sq.Size = size
 }
 
-// AddSort adds a sort field to the search query
+// AddSort は検索クエリにソートフィールドを追加する
 func (sq *SearchQuery) AddSort(field, order string) {
 	sq.Sort = append(sq.Sort, SortField{
 		Field: field,
@@ -69,7 +69,7 @@ func (sq *SearchQuery) AddSort(field, order string) {
 	})
 }
 
-// NewSearchResult creates a new SearchResult instance
+// NewSearchResult は新しい SearchResult インスタンスを作成する
 func NewSearchResult(query SearchQuery) *SearchResult {
 	return &SearchResult{
 		Query: query,
@@ -79,17 +79,17 @@ func NewSearchResult(query SearchQuery) *SearchResult {
 	}
 }
 
-// AddHit adds a hit to the search result
+// AddHit は検索結果にヒットを追加する
 func (sr *SearchResult) AddHit(hit Hit) {
 	sr.Hits = append(sr.Hits, hit)
 }
 
-// HasResults returns true if there are search results
+// HasResults は検索結果があるかどうかを返す
 func (sr *SearchResult) HasResults() bool {
 	return len(sr.Hits) > 0
 }
 
-// GetTotalPages returns the total number of pages
+// GetTotalPages は総ページ数を返す
 func (sr *SearchResult) GetTotalPages() int64 {
 	if sr.Query.Size == 0 {
 		return 0
@@ -97,7 +97,7 @@ func (sr *SearchResult) GetTotalPages() int64 {
 	return (sr.Total + int64(sr.Query.Size) - 1) / int64(sr.Query.Size)
 }
 
-// GetCurrentPage returns the current page number
+// GetCurrentPage は現在のページ番号を返す
 func (sr *SearchResult) GetCurrentPage() int64 {
 	if sr.Query.Size == 0 {
 		return 0

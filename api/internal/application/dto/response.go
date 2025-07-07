@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// DocumentDTO represents a document in response
+// DocumentDTO はレスポンス内のドキュメントを表す
 type DocumentDTO struct {
 	ID       string         `json:"id"`
 	Index    string         `json:"index"`
@@ -14,7 +14,7 @@ type DocumentDTO struct {
 	Modified time.Time      `json:"modified"`
 }
 
-// SearchResponse represents a search response
+// SearchResponse は検索レスポンスを表す
 type SearchResponse struct {
 	Query    SearchQueryDTO `json:"query"`
 	Results  []HitDTO       `json:"results"`
@@ -24,7 +24,7 @@ type SearchResponse struct {
 	TimedOut bool           `json:"timed_out,omitempty"`
 }
 
-// SearchQueryDTO represents a search query in response
+// SearchQueryDTO はレスポンス内の検索クエリを表す
 type SearchQueryDTO struct {
 	Query   string            `json:"query"`
 	Index   string            `json:"index,omitempty"`
@@ -34,7 +34,7 @@ type SearchQueryDTO struct {
 	Sort    []SortFieldDTO    `json:"sort,omitempty"`
 }
 
-// HitDTO represents a search hit in response
+// HitDTO はレスポンス内の検索ヒットを表す
 type HitDTO struct {
 	Index  string         `json:"index"`
 	ID     string         `json:"id"`
@@ -42,19 +42,19 @@ type HitDTO struct {
 	Source map[string]any `json:"source"`
 }
 
-// ErrorResponse represents an error response
+// ErrorResponse はエラーレスポンスを表す
 type ErrorResponse struct {
 	Error ErrorDTO `json:"error"`
 }
 
-// ErrorDTO represents error details
+// ErrorDTO はエラー詳細を表す
 type ErrorDTO struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Details string `json:"details,omitempty"`
 }
 
-// HealthResponse represents a health check response
+// HealthResponse はヘルスチェックレスポンスを表す
 type HealthResponse struct {
 	Status  string                 `json:"status"`
 	Service string                 `json:"service"`
@@ -62,7 +62,7 @@ type HealthResponse struct {
 	Checks  map[string]interface{} `json:"checks"`
 }
 
-// NewErrorResponse creates a new error response
+// NewErrorResponse は新しいエラーレスポンスを作成する
 func NewErrorResponse(code, message, details string) *ErrorResponse {
 	return &ErrorResponse{
 		Error: ErrorDTO{
@@ -73,7 +73,7 @@ func NewErrorResponse(code, message, details string) *ErrorResponse {
 	}
 }
 
-// NewSearchResponse creates a new search response
+// NewSearchResponse は新しい検索レスポンスを作成する
 func NewSearchResponse(query SearchQueryDTO, results []HitDTO, total int64, maxScore float64, took int64, timedOut bool) *SearchResponse {
 	response := &SearchResponse{
 		Query:    query,
@@ -83,7 +83,7 @@ func NewSearchResponse(query SearchQueryDTO, results []HitDTO, total int64, maxS
 		TimedOut: timedOut,
 	}
 
-	// Only include max_score if there are results
+	// 結果がある場合のみmax_scoreを含める
 	if len(results) > 0 {
 		response.MaxScore = maxScore
 	}
@@ -91,7 +91,7 @@ func NewSearchResponse(query SearchQueryDTO, results []HitDTO, total int64, maxS
 	return response
 }
 
-// NewHealthResponse creates a new health response
+// NewHealthResponse は新しいヘルスレスポンスを作成する
 func NewHealthResponse(status, service, version string, checks map[string]interface{}) *HealthResponse {
 	return &HealthResponse{
 		Status:  status,

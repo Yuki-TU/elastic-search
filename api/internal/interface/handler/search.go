@@ -9,29 +9,29 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/pkg/utils"
 )
 
-// SearchHandler handles search-related HTTP requests
+// SearchHandler は検索関連のHTTPリクエストを処理する
 type SearchHandler struct {
 	searchUseCase *usecase.SearchUseCase
 }
 
-// NewSearchHandler creates a new SearchHandler
+// NewSearchHandler は新しい SearchHandler を作成する
 func NewSearchHandler(searchUseCase *usecase.SearchUseCase) *SearchHandler {
 	return &SearchHandler{
 		searchUseCase: searchUseCase,
 	}
 }
 
-// Search handles basic search requests
+// Search は基本的な検索リクエストを処理する
 // GET /search?q={query}&index={index}&from={from}&size={size}
 func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rw := utils.NewResponseWriter(w)
 
-	// Set headers
+	// ヘッダーを設定
 	utils.SetCORSHeaders(w)
 	utils.SetSecurityHeaders(w)
 
-	// Parse query parameters
+	// クエリパラメータを解析
 	query := r.URL.Query().Get("q")
 	if query == "" {
 		rw.WriteBadRequestError("Query parameter 'q' is required")
@@ -42,7 +42,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	from, _ := strconv.Atoi(r.URL.Query().Get("from"))
 	size, _ := strconv.Atoi(r.URL.Query().Get("size"))
 
-	// Create search request
+	// 検索リクエストを作成
 	req := &dto.SearchRequest{
 		Query: query,
 		Index: index,
@@ -50,46 +50,46 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		Size:  size,
 	}
 
-	// Perform search
+	// 検索を実行
 	result, err := h.searchUseCase.Search(ctx, req)
 	if err != nil {
 		rw.WriteError(err)
 		return
 	}
 
-	// Return search results
+	// 検索結果を返す
 	rw.WriteSearchResult(result)
 }
 
-// AdvancedSearch handles advanced search requests with filters and sorting
+// AdvancedSearch はフィルターとソートを含む高度な検索リクエストを処理する
 // POST /search
 func (h *SearchHandler) AdvancedSearch(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rw := utils.NewResponseWriter(w)
 
-	// Set headers
+	// ヘッダーを設定
 	utils.SetCORSHeaders(w)
 	utils.SetSecurityHeaders(w)
 
-	// Parse request body
+	// リクエストボディを解析
 	var req dto.SearchRequest
 	if err := utils.ParseRequestBody(r, &req); err != nil {
 		rw.WriteError(err)
 		return
 	}
 
-	// Perform advanced search
+	// 高度な検索を実行
 	result, err := h.searchUseCase.AdvancedSearch(ctx, &req)
 	if err != nil {
 		rw.WriteError(err)
 		return
 	}
 
-	// Return search results
+	// 検索結果を返す
 	rw.WriteSearchResult(result)
 }
 
-// OptionsHandler handles CORS preflight requests
+// OptionsHandler はCORSプリフライトリクエストを処理する
 func (h *SearchHandler) OptionsHandler(w http.ResponseWriter, r *http.Request) {
 	utils.SetCORSHeaders(w)
 	w.WriteHeader(http.StatusOK)

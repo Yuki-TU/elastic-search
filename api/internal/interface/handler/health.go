@@ -10,38 +10,38 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/pkg/utils"
 )
 
-// HealthHandler handles health check requests
+// HealthHandler はヘルスチェックリクエストを処理する
 type HealthHandler struct {
 	esClient *elasticsearch.Client
 }
 
-// NewHealthHandler creates a new HealthHandler
+// NewHealthHandler は新しい HealthHandler を作成する
 func NewHealthHandler(esClient *elasticsearch.Client) *HealthHandler {
 	return &HealthHandler{
 		esClient: esClient,
 	}
 }
 
-// HealthCheck handles basic health check requests
+// HealthCheck は基本的なヘルスチェックリクエストを処理する
 // GET /health
 func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rw := utils.NewResponseWriter(w)
 
-	// Set headers
+	// ヘッダーを設定
 	utils.SetCORSHeaders(w)
 	utils.SetSecurityHeaders(w)
 
-	// Check ElasticSearch connection
+	// ElasticSearch接続をチェック
 	esHealth := h.checkElasticsearchHealth(ctx)
 
-	// Overall health status
+	// 全体的なヘルス状態
 	overallStatus := "healthy"
 	if isHealthy, ok := esHealth["is_healthy"].(bool); !ok || !isHealthy {
 		overallStatus = "unhealthy"
 	}
 
-	// Create health response using DTO
+	// DTOを使用してヘルスレスポンスを作成
 	healthResponse := dto.NewHealthResponse(
 		overallStatus,
 		"elasticsearch-api",
@@ -58,19 +58,19 @@ func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// OptionsHandler handles CORS preflight requests
+// OptionsHandler はCORSプリフライトリクエストを処理する
 func (h *HealthHandler) OptionsHandler(w http.ResponseWriter, r *http.Request) {
 	utils.SetCORSHeaders(w)
 	w.WriteHeader(http.StatusOK)
 }
 
-// checkElasticsearchHealth checks the health of the ElasticSearch cluster
+// checkElasticsearchHealth はElasticSearchクラスターのヘルスをチェックする
 func (h *HealthHandler) checkElasticsearchHealth(ctx context.Context) map[string]any {
-	// Create a context with timeout for the health check
+	// ヘルスチェック用にタイムアウト付きのコンテキストを作成
 	healthCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	// Perform health check
+	// ヘルスチェックを実行
 	info, err := h.esClient.Info(healthCtx)
 	if err != nil {
 		return map[string]any{
@@ -80,19 +80,19 @@ func (h *HealthHandler) checkElasticsearchHealth(ctx context.Context) map[string
 		}
 	}
 
-	// Extract information from the response
+	// レスポンスから情報を抽出
 	healthInfo := map[string]any{
 		"is_healthy":    true,
 		"status":        "available",
 		"response_time": "< 5s",
 	}
 
-	// Extract cluster name
+	// クラスター名を抽出
 	if clusterName, ok := info["cluster_name"].(string); ok {
 		healthInfo["cluster_name"] = clusterName
 	}
 
-	// Extract version information
+	// バージョン情報を抽出
 	if version, ok := info["version"].(map[string]any); ok {
 		if versionNumber, ok := version["number"].(string); ok {
 			healthInfo["version"] = versionNumber

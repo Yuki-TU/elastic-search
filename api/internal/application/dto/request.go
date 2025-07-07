@@ -4,27 +4,27 @@ import (
 	"time"
 )
 
-// CreateDocumentRequest represents a request to create a document
+// CreateDocumentRequest はドキュメント作成リクエストを表す
 type CreateDocumentRequest struct {
 	Index  string         `json:"index" binding:"required"`
 	ID     string         `json:"id,omitempty"`
 	Source map[string]any `json:"source" binding:"required"`
 }
 
-// UpdateDocumentRequest represents a request to update a document
+// UpdateDocumentRequest はドキュメント更新リクエストを表す
 type UpdateDocumentRequest struct {
 	Index  string         `json:"index" binding:"required"`
 	ID     string         `json:"id" binding:"required"`
 	Source map[string]any `json:"source" binding:"required"`
 }
 
-// DeleteDocumentRequest represents a request to delete a document
+// DeleteDocumentRequest はドキュメント削除リクエストを表す
 type DeleteDocumentRequest struct {
 	Index string `json:"index" binding:"required"`
 	ID    string `json:"id" binding:"required"`
 }
 
-// SearchRequest represents a search request
+// SearchRequest は検索リクエストを表す
 type SearchRequest struct {
 	Query   string            `json:"query" binding:"required"`
 	Index   string            `json:"index,omitempty"`
@@ -34,31 +34,31 @@ type SearchRequest struct {
 	Sort    []SortFieldDTO    `json:"sort,omitempty"`
 }
 
-// SortFieldDTO represents a sort field in request
+// SortFieldDTO はリクエスト内のソートフィールドを表す
 type SortFieldDTO struct {
 	Field string `json:"field" binding:"required"`
-	Order string `json:"order" binding:"required"` // "asc" or "desc"
+	Order string `json:"order" binding:"required"` // "asc" または "desc"
 }
 
-// BulkIndexRequest represents a bulk index request
+// BulkIndexRequest はバルクインデックスリクエストを表す
 type BulkIndexRequest struct {
 	Documents []BulkDocumentRequest `json:"documents" binding:"required"`
 }
 
-// BulkDocumentRequest represents a single document in bulk request
+// BulkDocumentRequest はバルクリクエスト内の単一ドキュメントを表す
 type BulkDocumentRequest struct {
 	Index  string         `json:"index" binding:"required"`
 	ID     string         `json:"id,omitempty"`
 	Source map[string]any `json:"source" binding:"required"`
 }
 
-// CreateIndexRequest represents a request to create an index
+// CreateIndexRequest はインデックス作成リクエストを表す
 type CreateIndexRequest struct {
 	Index   string         `json:"index" binding:"required"`
 	Mapping map[string]any `json:"mapping,omitempty"`
 }
 
-// Validate validates the CreateDocumentRequest
+// Validate は CreateDocumentRequest を検証する
 func (req *CreateDocumentRequest) Validate() error {
 	if req.Index == "" {
 		return ErrIndexRequired
@@ -69,7 +69,7 @@ func (req *CreateDocumentRequest) Validate() error {
 	return nil
 }
 
-// Validate validates the UpdateDocumentRequest
+// Validate は UpdateDocumentRequest を検証する
 func (req *UpdateDocumentRequest) Validate() error {
 	if req.Index == "" {
 		return ErrIndexRequired
@@ -83,7 +83,7 @@ func (req *UpdateDocumentRequest) Validate() error {
 	return nil
 }
 
-// Validate validates the SearchRequest
+// Validate は SearchRequest を検証する
 func (req *SearchRequest) Validate() error {
 	if req.Query == "" {
 		return ErrQueryRequired
@@ -105,7 +105,7 @@ func (req *SearchRequest) Validate() error {
 	return nil
 }
 
-// SetDefaults sets default values for SearchRequest
+// SetDefaults は SearchRequest のデフォルト値を設定する
 func (req *SearchRequest) SetDefaults() {
 	if req.Size == 0 {
 		req.Size = 10
@@ -115,25 +115,25 @@ func (req *SearchRequest) SetDefaults() {
 	}
 }
 
-// Custom errors for validation
+// バリデーション用のカスタムエラー
 var (
-	ErrIndexRequired     = NewValidationError("index is required")
-	ErrIDRequired        = NewValidationError("id is required")
-	ErrSourceRequired    = NewValidationError("source is required")
-	ErrQueryRequired     = NewValidationError("query is required")
-	ErrInvalidSize       = NewValidationError("size must be non-negative")
-	ErrInvalidFrom       = NewValidationError("from must be non-negative")
-	ErrSortFieldRequired = NewValidationError("sort field is required")
-	ErrInvalidSortOrder  = NewValidationError("sort order must be 'asc' or 'desc'")
+	ErrIndexRequired     = NewValidationError("インデックスは必須です")
+	ErrIDRequired        = NewValidationError("IDは必須です")
+	ErrSourceRequired    = NewValidationError("ソースは必須です")
+	ErrQueryRequired     = NewValidationError("クエリは必須です")
+	ErrInvalidSize       = NewValidationError("サイズは非負の値である必要があります")
+	ErrInvalidFrom       = NewValidationError("fromは非負の値である必要があります")
+	ErrSortFieldRequired = NewValidationError("ソートフィールドは必須です")
+	ErrInvalidSortOrder  = NewValidationError("ソート順序は 'asc' または 'desc' である必要があります")
 )
 
-// ValidationError represents a validation error
+// ValidationError はバリデーションエラーを表す
 type ValidationError struct {
 	Message string    `json:"message"`
 	Time    time.Time `json:"time"`
 }
 
-// NewValidationError creates a new validation error
+// NewValidationError は新しいバリデーションエラーを作成する
 func NewValidationError(message string) *ValidationError {
 	return &ValidationError{
 		Message: message,
@@ -141,7 +141,7 @@ func NewValidationError(message string) *ValidationError {
 	}
 }
 
-// Error implements the error interface
+// Error は error インターフェースを実装する
 func (e *ValidationError) Error() string {
 	return e.Message
 }
