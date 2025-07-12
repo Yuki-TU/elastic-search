@@ -11,11 +11,11 @@ import (
 
 // SearchHandler は検索関連のHTTPリクエストを処理する
 type SearchHandler struct {
-	searchUseCase *usecase.SearchUseCase
+	searchUseCase usecase.SearchUseCaser
 }
 
 // NewSearchHandler は新しい SearchHandler を作成する
-func NewSearchHandler(searchUseCase *usecase.SearchUseCase) *SearchHandler {
+func NewSearchHandler(searchUseCase usecase.SearchUseCaser) *SearchHandler {
 	return &SearchHandler{
 		searchUseCase: searchUseCase,
 	}

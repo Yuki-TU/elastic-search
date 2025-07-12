@@ -9,6 +9,19 @@ import (
 	"github.com/Yuki-TU/elastic-search/api/pkg/errors"
 )
 
+// SearchUseCaser は検索ユースケースのインターフェース
+type SearchUseCaser interface {
+	Search(ctx context.Context, req *dto.SearchRequest) (*dto.SearchResponse, error)
+	AdvancedSearch(ctx context.Context, req *dto.SearchRequest) (*dto.SearchResponse, error)
+	MultiSearch(ctx context.Context, requests []*dto.SearchRequest) ([]*dto.SearchResponse, error)
+	SuggestSearch(ctx context.Context, query, index, field string, size int) (*dto.SearchResponse, error)
+	FacetedSearch(ctx context.Context, req *dto.SearchRequest, facetFields []string) (*dto.SearchResponse, error)
+	SearchByField(ctx context.Context, field, value, index string, from, size int) (*dto.SearchResponse, error)
+	SearchSimilar(ctx context.Context, index, id string, fields []string, size int) (*dto.SearchResponse, error)
+	GetSearchStatistics(ctx context.Context, index string) (map[string]any, error)
+	ValidateSearchQuery(ctx context.Context, req *dto.SearchRequest) error
+}
+
 // SearchUseCase は検索関連の操作を処理する
 type SearchUseCase struct {
 	searchService service.Searcher

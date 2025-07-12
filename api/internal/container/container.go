@@ -166,7 +166,7 @@ func (c *Container) GetDocumentUseCase() *usecase.DocumentUseCase {
 }
 
 // GetSearchUseCase は検索ユースケースを返す
-func (c *Container) GetSearchUseCase() *usecase.SearchUseCase {
+func (c *Container) GetSearchUseCase() usecase.SearchUseCaser {
 	return c.SearchUseCase
 }
 
@@ -204,7 +204,7 @@ type ContainerInterface interface {
 	GetDocumentService() *service.DocumentService
 	GetSearchService() *service.SearchService
 	GetDocumentUseCase() *usecase.DocumentUseCase
-	GetSearchUseCase() *usecase.SearchUseCase
+	GetSearchUseCase() usecase.SearchUseCaser
 	GetDocumentHandler() *handler.DocumentHandler
 	GetSearchHandler() *handler.SearchHandler
 	GetHealthHandler() *handler.HealthHandler
