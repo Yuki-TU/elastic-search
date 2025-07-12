@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/caarlos0/env/v11 v11.3.1
-	github.com/elastic/go-elasticsearch/v8 v8.11.0
+	github.com/elastic/go-elasticsearch/v9 v9.0.0
 )
 
 require (

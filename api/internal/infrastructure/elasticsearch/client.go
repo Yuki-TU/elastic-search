@@ -12,7 +12,7 @@ import (
 
 	"github.com/Yuki-TU/elastic-search/api/config"
 	"github.com/Yuki-TU/elastic-search/api/pkg/errors"
-	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v9"
 )
 
 // Client wraps the Elasticsearch client with additional functionality
